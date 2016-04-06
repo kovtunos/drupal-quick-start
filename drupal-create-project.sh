@@ -53,7 +53,6 @@ git commit -m 'Initial commit.'
 
 # patching local settings
 sed -i "s/# \$settings\['cache'\]/\$settings\['cache'\]/g" sites/default/settings.local.php
-sed -i "s/\['preprocess'\] = FALSE;/\['preprocess'\] = TRUE;/g" sites/default/settings.local.php
 
 cat << 'EOF' >> sites/development.services.yml
 
