@@ -1,6 +1,10 @@
 #!/bin/bash
 
-VERSION="8.0.5"
+# variables
+DRUPAL_VERSION="8.0.6"
+DRUSH_TIMEOUT=60
+TIMEZONE='Europe/Moscow'
+COUNTRY_CODE='RU'
 
 
 echo "Enter short project name: "
@@ -14,12 +18,12 @@ fi
 
 
 # download drupal
-if [ ! -f ~/.cache/drupal-$VERSION.tar.gz ]; then
-  wget https://ftp.drupal.org/files/projects/drupal-$VERSION.tar.gz -O ~/.cache/drupal-$VERSION.tar.gz
+if [ ! -f ~/.cache/drupal-$DRUPAL_VERSION.tar.gz ]; then
+  wget https://ftp.drupal.org/files/projects/drupal-$DRUPAL_VERSION.tar.gz -O ~/.cache/drupal-$DRUPAL_VERSION.tar.gz
 fi
 
-tar -xzvf ~/.cache/drupal-$VERSION.tar.gz
-mv drupal-$VERSION $PROJECT
+tar -xzvf ~/.cache/drupal-$DRUPAL_VERSION.tar.gz
+mv drupal-$DRUPAL_VERSION $PROJECT
 cd $PROJECT
 
 
@@ -102,9 +106,15 @@ docker-compose up -d
 
 
 # timeout fixes drush `not found` error
-sleep 60
+sleep $DRUSH_TIMEOUT
 
 drush si standard -y --db-url="mysql://container:container@localhost/$PROJECT" --site-name=$PROJECT --uri="$PROJECT.dev" --account-name=admin --account-pass=admin --account-mail=admin@admin.com
+
+
+# drupal settings
+drush cset -y system.date timezone.default $TIMEZONE
+drush cset -y system.date first_day 1
+drush cset -y system.date country.default $COUNTRY_CODE
 
 
 # patching settings.php
@@ -127,8 +137,9 @@ git commit -m 'Install Drupal.'
 
 
 # install dev modules
-drush dl -y admin_toolbar devel
-drush en -y admin_toolbar devel devel_generate kint
+drush dl -y devel admin_toolbar
+drush en -y devel devel_generate kint admin_toolbar
+drush pm-uninstall -y rdf tour
 
 drush status
 
