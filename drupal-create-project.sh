@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-DRUPAL_VERSION="8.0.6"
+DRUPAL_VERSION="8.1.1"
 DRUSH_TIMEOUT=60
 TIMEZONE='Europe/Moscow'
 COUNTRY_CODE='RU'
