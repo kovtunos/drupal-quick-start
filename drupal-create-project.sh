@@ -137,8 +137,8 @@ git commit -m 'Install Drupal.'
 
 
 # install dev modules
-drush dl -y devel admin_toolbar
-drush en -y devel devel_generate kint admin_toolbar
+drush dl -y devel admin_toolbar search_kint config_inspector
+drush en -y devel devel_generate kint admin_toolbar search_kint config_inspector
 drush pm-uninstall -y rdf tour
 
 drush status
