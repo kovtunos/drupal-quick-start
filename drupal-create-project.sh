@@ -121,7 +121,15 @@ drush cset -y system.date country.default $COUNTRY_CODE
 chmod 755 sites/default
 chmod 644 sites/default/settings.php
 
+# configuration
+mkdir sites/default/sync
+sed -i "/files\/config_/d" sites/default/settings.php
 cat << EOF >> sites/default/settings.php
+
+/**
+ * Config directories
+ */
+\$config_directories[CONFIG_SYNC_DIRECTORY] = 'sites/default/sync';
 
 /**
  * Local dev settings.
@@ -141,17 +149,24 @@ drush dl -y devel admin_toolbar search_kint config_inspector
 drush en -y devel devel_generate kint admin_toolbar search_kint config_inspector
 drush pm-uninstall -y rdf tour
 
-drush status
+# install common contrib modules
+drush dl -y coffee simple_sitemap metatag
+drush en -y coffee simple_sitemap metatag metatag_open_graph
 
 
-# commit dev modules
+# commit modules
 git add .
-git commit -m 'Install dev modules.'
+git commit -m 'Install modules.'
 
 
 # dump clean db
 mkdir sites/default/files/backup
 drush sql-dump > sites/default/files/backup/initial-db.sql
+
+# commit initial configuration
+drush cex
+git add .
+git commit -m 'Initial configuration export.'
 
 
 # final message
