@@ -150,8 +150,8 @@ drush en -y devel devel_generate kint admin_toolbar search_kint config_inspector
 drush pm-uninstall -y rdf tour
 
 # install common contrib modules
-drush dl -y coffee simple_sitemap metatag
-drush en -y coffee simple_sitemap metatag metatag_open_graph
+drush dl -y coffee simple_sitemap metatag pathauto ctools
+drush en -y coffee simple_sitemap metatag metatag_open_graph pathauto ctools
 
 
 # commit modules
