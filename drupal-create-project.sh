@@ -6,6 +6,9 @@ DRUSH_TIMEOUT=60
 TIMEZONE='Europe/Moscow'
 COUNTRY_CODE='RU'
 
+SUPERUSER='admin'
+PASSWORD='admin'
+EMAIL='admin@admin.com'
 
 echo "Enter short project name: "
 read PROJECT
@@ -37,8 +40,10 @@ sed -i 's/sites\/\*\/services\*.yml/# sites\/\*\/services\*.yml/g' .gitignore
 cat >> .gitignore <<EOF
 
 # Ignore temporary files
-temp/*
+tmp/*
 node_modules
+
+# Ingore project files
 nbproject
 .idea
 EOF
@@ -105,10 +110,11 @@ git commit -m 'Dockerize drupal settings.'
 docker-compose up -d
 
 
-# timeout fixes drush `not found` error
+# timeout fixes `drush not found` error
 sleep $DRUSH_TIMEOUT
 
-drush si standard -y --db-url="mysql://container:container@localhost/$PROJECT" --site-name=$PROJECT --uri="$PROJECT.dev" --account-name=admin --account-pass=admin --account-mail=admin@admin.com
+mkdir tmp
+drush si standard -y --db-url="mysql://container:container@localhost/$PROJECT" --site-name=$PROJECT --uri="$PROJECT.dev" --account-name=$SUPERUSER --account-pass=$PASSWORD --account-mail=$EMAIL
 
 
 # drupal settings
@@ -148,7 +154,9 @@ git commit -m 'Install Drupal.'
 # install dev modules
 drush dl -y devel admin_toolbar search_kint config_inspector
 drush en -y devel devel_generate kint admin_toolbar search_kint config_inspector
-drush pm-uninstall -y rdf tour
+
+# uninstall core modules
+drush pm-uninstall -y rdf tour color
 
 # install common contrib modules
 drush dl -y coffee simple_sitemap metatag pathauto ctools redirect
