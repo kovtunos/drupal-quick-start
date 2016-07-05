@@ -91,7 +91,7 @@ git commit -m 'Patch settings for dev environment.'
 
 # preparing docker
 echo $PROJECT | drupal-compose
-drupal-compose service php set version 5.6
+drupal-compose service php set version 7.0
 
 cat << EOF >> host.yml
 
