@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-DRUPAL_VERSION="8.1.5"
+DRUPAL_VERSION="7.50"
 DRUSH_TIMEOUT=60
 TIMEZONE='Europe/Moscow'
 COUNTRY_CODE='RU'
@@ -31,10 +31,6 @@ cd $PROJECT
 
 
 # gitignore
-mv example.gitignore .gitignore
-sed -i 's/# core/\/core/g' .gitignore
-sed -i 's/# vendor/\/vendor/g' .gitignore
-
 cat >> .gitignore <<EOF
 
 # Ignore temporary files
@@ -50,29 +46,29 @@ nbproject
 *ftpconfig*
 
 # Files not used on production
-docker-compose.yml
-example.gitignore
-host.yml
+CHANGELOG.txt
+COPYRIGHT.txt
+INSTALL.mysql.txt
+INSTALL.pgsql.txt
+INSTALL.sqlite.txt
+INSTALL.txt
 LICENSE.txt
-modules/README.txt
-profiles
+MAINTAINERS.txt
 README.txt
-sites/default/default.services.yml
-sites/default/default.settings.php
-sites/default/settings.php
-sites/default/settings.local.php
-sites/development.services.yml
-sites/example.settings.local.php
-sites/example.sites.php
+UPGRADE.txt
 sites/README.txt
 themes/README.txt
+sites/example.sites.php
+sites/default/default.settings.php
+sites/default/settings.local.php
+docker-compose.yml
+host.yml
 web.config
 EOF
 
 
 # copying settings files
 cp sites/default/default.settings.php sites/default/settings.php
-cp sites/example.settings.local.php sites/default/settings.local.php
 
 
 # git init
@@ -81,27 +77,30 @@ git add .
 git commit -m 'Initial commit.'
 
 
-# patching local settings
-sed -i "s/# \$settings\['cache'\]/\$settings\['cache'\]/g" sites/default/settings.local.php
+# local debug settings
+cat << 'EOF' > sites/default/settings.local.php
+<?php
 
-cat << 'EOF' >> sites/development.services.yml
+/**
+ * Theme debugging.
+ */
+$conf['theme_debug'] = TRUE;
 
-parameters:
-  twig.config:
-    debug: true
-    auto-reload: true
-    cache: false
+/**
+ * CSS/JS aggregated file gzip compression:
+ */
+$conf['css_gzip_compression'] = FALSE;
+$conf['js_gzip_compression'] = FALSE;
 EOF
 
 
 # drush configuration
-mkdir drush
-cat << 'EOF' > drush/drushrc.php
+mkdir sites/all/drush
+cat << 'EOF' > sites/all/drush/drushrc.php
 <?php
 
-
-# Download all modules into modules/contrib folder
-$command_specific['dl'] = array('destination' => 'modules/contrib');
+# Download all modules into contrib folder
+$command_specific['dl'] = array('destination' => 'sites/all/modules/contrib');
 EOF
 
 
@@ -119,7 +118,6 @@ EOF
 # starting server
 docker-compose up -d
 
-
 # timeout fixes `drush not found` error
 sleep $DRUSH_TIMEOUT
 
@@ -128,9 +126,14 @@ drush si standard -y --db-url="mysql://container:container@localhost/$PROJECT" -
 
 
 # drupal settings
-drush cset -y system.date timezone.default $TIMEZONE
-drush cset -y system.date first_day 1
-drush cset -y system.date country.default $COUNTRY_CODE
+drush vset date_default_timezone $TIMEZONE -y
+drush vset site_default_country $COUNTRY_CODE -y
+drush vset configurable_timezones 0 -y
+drush vset user_default_timezone 0 -y
+drush vset date_first_day 1 -y
+drush vset cache 0
+drush vset preprocess_css 0
+drush vset preprocess_js 0
 
 
 # patching settings.php
@@ -138,16 +141,8 @@ chmod 755 sites/default
 chmod 644 sites/default/settings.php
 
 
-# configuration
-mkdir sites/default/sync
-sed -i "/files\/config_/d" sites/default/settings.php
-
-cat << EOF >> sites/default/settings.php
-
-/**
- * Config directories
- */
-\$config_directories[CONFIG_SYNC_DIRECTORY] = 'sites/default/sync';
+# enable local settings
+cat << 'EOF' >> sites/default/settings.php
 
 /**
  * Local dev settings.
@@ -162,33 +157,29 @@ EOF
 git add .
 git commit -m 'Install Drupal.'
 
-
-# install dev modules
-drush dl -y devel admin_toolbar search_kint config_inspector
-drush en -y devel devel_generate kint admin_toolbar search_kint config_inspector
+# disable core modules
+drush dis -y rdf overlay color dashboard toolbar search
 
 # uninstall core modules
-drush pm-uninstall -y rdf tour color
+drush pm-uninstall -y rdf overlay color dashboard toolbar search
 
-# install common contrib modules
-drush dl -y coffee simple_sitemap metatag pathauto ctools redirect
-drush en -y coffee simple_sitemap metatag metatag_open_graph pathauto ctools redirect
+# download contrib modules
+drush dl -y admin_menu admin_views module_filter devel backup_migrate browsersync coffee fences globalredirect \
+  libraries metatag pathauto token views views404 xmlsitemap
+
+# install contrib modules
+drush en -y admin_menu admin_menu_toolbar admin_views module_filter devel devel_generate  backup_migrate browsersync coffee fences globalredirect \
+  libraries metatag metatag_opengraph pathauto token views views_ui views404 xmlsitemap xmlsitemap_node xmlsitemap_menu
 
 
 # commit modules
 git add .
-git commit -m 'Install modules.'
+git commit -m 'Install core modules.'
 
 
 # dump clean db
 mkdir sites/default/files/backups
 drush sql-dump > sites/default/files/backups/initial-db.sql
-
-
-# commit initial configuration
-drush cex
-git add .
-git commit -m 'Initial configuration export.'
 
 
 # final message
