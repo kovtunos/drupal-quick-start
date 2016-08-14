@@ -32,20 +32,41 @@ cd $PROJECT
 
 # gitignore
 mv example.gitignore .gitignore
-sed -i 's/# core/core/g' .gitignore
-sed -i 's/# vendor/vendor/g' .gitignore
-sed -i 's/sites\/\*\/settings\*.php/# sites\/\*\/settings\*.php/g' .gitignore
-sed -i 's/sites\/\*\/services\*.yml/# sites\/\*\/services\*.yml/g' .gitignore
+sed -i 's/# core/\/core/g' .gitignore
+sed -i 's/# vendor/\/vendor/g' .gitignore
 
 cat >> .gitignore <<EOF
 
 # Ignore temporary files
 tmp/*
 node_modules
+.cache
+.directory
 
 # Ingore project files
-nbproject
 .idea
+.netbeans
+nbproject
+*ftpconfig*
+
+# Files not used on production
+docker-compose.yml
+example.gitignore
+host.yml
+LICENSE.txt
+modules/README.txt
+profiles
+README.txt
+sites/default/default.services.yml
+sites/default/default.settings.php
+sites/default/settings.php
+sites/default/settings.local.php
+sites/development.services.yml
+sites/example.settings.local.php
+sites/example.sites.php
+sites/README.txt
+themes/README.txt
+web.config
 EOF
 
 
@@ -84,14 +105,8 @@ $command_specific['dl'] = array('destination' => 'modules/contrib');
 EOF
 
 
-# commit after patching
-git add .
-git commit -m 'Patch settings for dev environment.'
-
-
 # preparing docker
 echo $PROJECT | drupal-compose
-drupal-compose service php set version 7.0
 
 cat << EOF >> host.yml
 
@@ -99,11 +114,6 @@ cat << EOF >> host.yml
     - PHP_INI_XDEBUG_REMOTE_CONNECT_BACK=On
     - PHP_INI_XDEBUG_IDEKEY=netbeans-xdebug
 EOF
-
-
-# commit after setting docker
-git add .
-git commit -m 'Dockerize drupal settings.'
 
 
 # starting server
@@ -127,6 +137,7 @@ drush cset -y system.date country.default $COUNTRY_CODE
 chmod 755 sites/default
 chmod 644 sites/default/settings.php
 
+
 # configuration
 mkdir sites/default/sync
 sed -i "/files\/config_/d" sites/default/settings.php
@@ -145,6 +156,7 @@ if (file_exists(__DIR__ . '/settings.local.php')) {
   include __DIR__ . '/settings.local.php';
 }
 EOF
+
 
 # commit after installing
 git add .
@@ -169,8 +181,9 @@ git commit -m 'Install modules.'
 
 
 # dump clean db
-mkdir sites/default/files/backup
-drush sql-dump > sites/default/files/backup/initial-db.sql
+mkdir sites/default/files/backups
+drush sql-dump > sites/default/files/backups/initial-db.sql
+
 
 # commit initial configuration
 drush cex
