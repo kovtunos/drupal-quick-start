@@ -1,21 +1,22 @@
 #!/bin/bash
 
 # variables
-DRUPAL_VERSION="8.1.8"
+DRUPAL_VERSION='8.1.9'
 DRUSH_TIMEOUT=60
 TIMEZONE='Europe/Moscow'
 COUNTRY_CODE='RU'
-
+PROFILE='standard'  # minimal | standard
+PHP='7.0'  # 5.5 (default) | 5.6 | 7.0
 SUPERUSER='admin'
 PASSWORD='admin'
 EMAIL='admin@admin.com'
 
-echo "Enter short project name: "
+echo 'Enter short project name: '
 read PROJECT
 
 if [ -d $PROJECT ]; then
   echo ''
-  echo "ERROR: Project exists"
+  echo 'ERROR: Project exists'
   exit 0
 fi
 
@@ -115,6 +116,11 @@ cat << EOF >> host.yml
     - PHP_INI_XDEBUG_IDEKEY=netbeans-xdebug
 EOF
 
+if [ "$PHP" == "5.6" ]; then
+  drupal-compose service php set version 5.6
+elif [ "$PHP" == "7.0" ]; then
+  drupal-compose service php set version 7.0
+fi
 
 # starting server
 docker-compose up -d
@@ -124,7 +130,7 @@ docker-compose up -d
 sleep $DRUSH_TIMEOUT
 
 mkdir tmp
-drush si standard -y --db-url="mysql://container:container@localhost/$PROJECT" --site-name=$PROJECT --uri="$PROJECT.dev" --account-name=$SUPERUSER --account-pass=$PASSWORD --account-mail=$EMAIL
+drush si $PROFILE -y --db-url="mysql://container:container@localhost/$PROJECT" --site-name=$PROJECT --uri="$PROJECT.dev" --account-name=$SUPERUSER --account-pass=$PASSWORD --account-mail=$EMAIL
 
 
 # drupal settings
