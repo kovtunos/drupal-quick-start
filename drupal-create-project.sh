@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-DRUPAL_VERSION='8.1.9'
+DRUPAL_VERSION='8.2.3'
 DRUSH_TIMEOUT=60
 TIMEZONE='Europe/Moscow'
 COUNTRY_CODE='RU'
@@ -177,8 +177,8 @@ drush en -y devel devel_generate kint admin_toolbar search_kint config_inspector
 drush pm-uninstall -y rdf tour color
 
 # install common contrib modules
-drush dl -y coffee simple_sitemap metatag pathauto ctools redirect
-drush en -y coffee simple_sitemap metatag metatag_open_graph pathauto ctools redirect
+drush dl -y coffee simple_sitemap metatag pathauto ctools redirect styleguide
+drush en -y coffee simple_sitemap metatag metatag_open_graph pathauto ctools redirect styleguide
 
 
 # commit modules
