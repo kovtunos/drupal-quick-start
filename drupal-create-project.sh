@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-DRUPAL_VERSION='8.2.3'
+DRUPAL_VERSION='8.2.5'
 DRUSH_TIMEOUT=60
 TIMEZONE='Europe/Moscow'
 COUNTRY_CODE='RU'
@@ -171,7 +171,7 @@ git commit -m 'Install Drupal.'
 
 # install dev modules
 drush dl -y devel admin_toolbar search_kint config_inspector
-drush en -y devel devel_generate kint admin_toolbar search_kint config_inspector
+drush en -y devel devel_generate kint admin_toolbar admin_toolbar_tools search_kint config_inspector
 
 # uninstall core modules
 drush pm-uninstall -y rdf tour color
@@ -199,6 +199,9 @@ git commit -m 'Initial configuration export.'
 
 # final message
 cat << EOF
+
+Go to the project directory:
+cd $PROJECT
 
 Open the project in browser:
 http://$PROJECT.dev/
