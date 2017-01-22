@@ -79,7 +79,7 @@ cp sites/example.settings.local.php sites/default/settings.local.php
 # git init
 git init
 git add .
-git commit -m 'Initial commit.'
+git commit -m 'Initial commit'
 
 
 # patching local settings
@@ -166,7 +166,7 @@ EOF
 
 # commit after installing
 git add .
-git commit -m 'Install Drupal.'
+git commit -m 'Install Drupal'
 
 
 # install dev modules
@@ -183,7 +183,7 @@ drush en -y coffee simple_sitemap metatag metatag_open_graph pathauto ctools red
 
 # commit modules
 git add .
-git commit -m 'Install modules.'
+git commit -m 'Install modules'
 
 
 # dump clean db
@@ -194,7 +194,7 @@ drush sql-dump > sites/default/files/backups/initial-db.sql
 # commit initial configuration
 drush cex
 git add .
-git commit -m 'Initial configuration export.'
+git commit -m 'Initial configuration export'
 
 
 # final message
