@@ -165,11 +165,11 @@ drush pm-uninstall -y rdf overlay color dashboard toolbar search
 
 # download contrib modules
 drush dl -y admin_menu admin_views module_filter devel backup_migrate browsersync coffee fences globalredirect \
-  libraries metatag pathauto token views views404 xmlsitemap
+  libraries metatag transliteration pathauto token views views404 xmlsitemap
 
 # install contrib modules
 drush en -y admin_menu admin_menu_toolbar admin_views module_filter devel devel_generate  backup_migrate browsersync coffee fences globalredirect \
-  libraries metatag metatag_opengraph pathauto token views views_ui views404 xmlsitemap xmlsitemap_node xmlsitemap_menu
+  libraries metatag metatag_opengraph transliteration pathauto token views views_ui views404 xmlsitemap xmlsitemap_node xmlsitemap_menu
 
 
 # commit modules
