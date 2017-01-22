@@ -74,7 +74,7 @@ cp sites/default/default.settings.php sites/default/settings.php
 # git init
 git init
 git add .
-git commit -m 'Initial commit.'
+git commit -m 'Initial commit'
 
 
 # local debug settings
@@ -155,7 +155,7 @@ EOF
 
 # commit after installing
 git add .
-git commit -m 'Install Drupal.'
+git commit -m 'Install Drupal'
 
 # disable core modules
 drush dis -y rdf overlay color dashboard toolbar search
@@ -174,7 +174,7 @@ drush en -y admin_menu admin_menu_toolbar admin_views module_filter devel devel_
 
 # commit modules
 git add .
-git commit -m 'Install core modules.'
+git commit -m 'Install core modules'
 
 
 # dump clean db
