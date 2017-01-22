@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-DRUPAL_VERSION="7.50"
+DRUPAL_VERSION="7.53"
 DRUSH_TIMEOUT=60
 TIMEZONE='Europe/Moscow'
 COUNTRY_CODE='RU'
@@ -184,6 +184,9 @@ drush sql-dump > sites/default/files/backups/initial-db.sql
 
 # final message
 cat << EOF
+
+Go to the project directory:
+cd $PROJECT
 
 Open the project in browser:
 http://$PROJECT.dev/
