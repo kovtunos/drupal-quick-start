@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-DRUPAL_VERSION='8.2.5'
+DRUPAL_VERSION='8.2.6'
 DRUSH_TIMEOUT=60
 TIMEZONE='Europe/Moscow'
 COUNTRY_CODE='RU'
@@ -11,8 +11,13 @@ SUPERUSER='admin'
 PASSWORD='admin'
 EMAIL='admin@admin.com'
 
-echo 'Enter short project name: '
+echo 'Enter short project name (one word, one dot allowed):'
 read PROJECT
+
+echo ''
+
+echo 'Enter site name:'
+read SITENAME
 
 if [ -d $PROJECT ]; then
   echo ''
@@ -46,9 +51,7 @@ node_modules
 
 # Ingore project files
 .idea
-.netbeans
 nbproject
-*ftpconfig*
 
 # Files not used on production
 docker-compose.yml
@@ -85,13 +88,21 @@ git commit -m 'Initial commit'
 # patching local settings
 sed -i "s/# \$settings\['cache'\]/\$settings\['cache'\]/g" sites/default/settings.local.php
 
-cat << 'EOF' >> sites/development.services.yml
-
+cat << 'EOF' > sites/development.services.yml
+# Local development services.
+#
+# To activate this feature, follow the instructions at the top of the
+# 'example.settings.local.php' file, which sits next to this file.
 parameters:
+  http.response.debug_cacheability_headers: true
   twig.config:
     debug: true
-    auto-reload: true
+    auto_reload: true
     cache: false
+services:
+  cache.backend.null:
+    class: Drupal\Core\Cache\NullBackendFactory
+
 EOF
 
 
@@ -107,13 +118,13 @@ EOF
 
 
 # preparing docker
-echo $PROJECT | drupal-compose
+echo ${PROJECT%.*} | drupal-compose
 
 cat << EOF >> host.yml
 
     - PHP_INI_XDEBUG=On
     - PHP_INI_XDEBUG_REMOTE_CONNECT_BACK=On
-    - PHP_INI_XDEBUG_IDEKEY=netbeans-xdebug
+    - PHP_INI_XDEBUG_IDEKEY=PHPSTORM
 EOF
 
 if [ "$PHP" == "5.6" ]; then
@@ -130,7 +141,8 @@ docker-compose up -d
 sleep $DRUSH_TIMEOUT
 
 mkdir tmp
-drush si $PROFILE -y --db-url="mysql://container:container@localhost/$PROJECT" --site-name=$PROJECT --uri="$PROJECT.dev" --account-name=$SUPERUSER --account-pass=$PASSWORD --account-mail=$EMAIL
+# remove dot in db name and domain
+drush si $PROFILE -y --db-url="mysql://container:container@localhost/${PROJECT%.*}" --site-name="${SITENAME}" --uri="${PROJECT%.*}.dev" --account-name="$SUPERUSER" --account-pass="$PASSWORD" --account-mail=$EMAIL
 
 
 # drupal settings
@@ -158,8 +170,8 @@ cat << EOF >> sites/default/settings.php
 /**
  * Local dev settings.
  */
-if (file_exists(__DIR__ . '/settings.local.php')) {
-  include __DIR__ . '/settings.local.php';
+if (file_exists(\$app_root . '/' . \$site_path . '/settings.local.php')) {
+  include \$app_root . '/' . \$site_path . '/settings.local.php';
 }
 EOF
 
@@ -170,15 +182,15 @@ git commit -m 'Install Drupal'
 
 
 # install dev modules
-drush dl -y devel admin_toolbar search_kint config_inspector
-drush en -y devel devel_generate kint admin_toolbar admin_toolbar_tools search_kint config_inspector
+drush dl -y devel admin_toolbar search_kint
+drush en -y devel devel_generate kint admin_toolbar admin_toolbar_tools search_kint
 
 # uninstall core modules
 drush pm-uninstall -y rdf tour color
 
 # install common contrib modules
-drush dl -y coffee simple_sitemap metatag pathauto ctools redirect styleguide
-drush en -y coffee simple_sitemap metatag metatag_open_graph pathauto ctools redirect styleguide
+drush dl -y coffee simple_sitemap metatag pathauto ctools redirect toolbar_visibility block_class field_formatter_class field_group permissions_filter twig_tweak twig_field_value
+drush en -y coffee simple_sitemap metatag metatag_open_graph pathauto ctools redirect toolbar_visibility block_class field_formatter_class field_group permissions_filter twig_tweak twig_field_value
 
 
 # commit modules
@@ -204,6 +216,6 @@ Go to the project directory:
 cd $PROJECT
 
 Open the project in browser:
-http://$PROJECT.dev/
+http://${PROJECT%.*}.dev/
 
 EOF
