@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-DRUPAL_VERSION='8.2.6'
+DRUPAL_VERSION='8.3.0'
 DRUSH_TIMEOUT=60
 TIMEZONE='Europe/Moscow'
 COUNTRY_CODE='RU'
@@ -10,6 +10,11 @@ PHP='7.0'  # 5.5 (default) | 5.6 | 7.0
 SUPERUSER='admin'
 PASSWORD='admin'
 EMAIL='admin@admin.com'
+
+MODULES_ENABLE='devel admin_toolbar search_kint coffee simple_sitemap metatag pathauto ctools redirect toolbar_visibility allowed_formats block_class field_formatter_class field_group permissions_filter twig_tweak twig_field_value'
+MODULES_ENABLE_EXTRA='devel_generate admin_toolbar_tools metatag_open_graph'
+MODULES_DISABLE='rdf tour color'
+
 
 echo 'Enter short project name (one word, one dot allowed):'
 read PROJECT
@@ -182,15 +187,11 @@ git commit -m 'Install Drupal'
 
 
 # install dev modules
-drush dl -y devel admin_toolbar search_kint
-drush en -y devel devel_generate kint admin_toolbar admin_toolbar_tools search_kint
+drush dl -y $MODULES_ENABLE
+drush en -y $MODULES_ENABLE $MODULES_ENABLE_EXTRA
 
 # uninstall core modules
-drush pm-uninstall -y rdf tour color
-
-# install common contrib modules
-drush dl -y coffee simple_sitemap metatag pathauto ctools redirect toolbar_visibility block_class field_formatter_class field_group permissions_filter twig_tweak twig_field_value
-drush en -y coffee simple_sitemap metatag metatag_open_graph pathauto ctools redirect toolbar_visibility block_class field_formatter_class field_group permissions_filter twig_tweak twig_field_value
+drush pm-uninstall -y $MODULES_DISABLE
 
 
 # commit modules
