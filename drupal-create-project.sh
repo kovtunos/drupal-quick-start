@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # variables
-DRUPAL_VERSION='8.3.0'
+DRUPAL_VERSION='8.3.1'
 DRUSH_TIMEOUT=60
 TIMEZONE='Europe/Moscow'
 COUNTRY_CODE='RU'
@@ -9,9 +9,9 @@ PROFILE='standard'  # minimal | standard
 PHP='7.0'  # 5.5 (default) | 5.6 | 7.0
 SUPERUSER='admin'
 PASSWORD='admin'
-EMAIL='admin@admin.com'
+EMAIL='admin@admin.dev'
 
-MODULES_ENABLE='devel admin_toolbar search_kint coffee simple_sitemap metatag pathauto ctools redirect toolbar_visibility allowed_formats block_class field_formatter_class field_group permissions_filter twig_tweak twig_field_value'
+MODULES_ENABLE='devel admin_toolbar search_kint coffee simple_sitemap metatag pathauto ctools redirect toolbar_visibility allowed_formats block_class field_formatter_class field_group permissions_filter twig_tweak twig_field_value module_filter'
 MODULES_ENABLE_EXTRA='devel_generate admin_toolbar_tools metatag_open_graph'
 MODULES_DISABLE='rdf tour color'
 
@@ -56,7 +56,6 @@ node_modules
 
 # Ingore project files
 .idea
-nbproject
 
 # Files not used on production
 docker-compose.yml
@@ -64,7 +63,7 @@ example.gitignore
 host.yml
 LICENSE.txt
 modules/README.txt
-profiles
+/profiles
 README.txt
 sites/default/default.services.yml
 sites/default/default.settings.php
@@ -82,6 +81,7 @@ EOF
 # copying settings files
 cp sites/default/default.settings.php sites/default/settings.php
 cp sites/example.settings.local.php sites/default/settings.local.php
+cp sites/default/default.services.yml sites/default/services.yml
 
 
 # git init
@@ -115,7 +115,6 @@ EOF
 mkdir drush
 cat << 'EOF' > drush/drushrc.php
 <?php
-
 
 # Download all modules into modules/contrib folder
 $command_specific['dl'] = array('destination' => 'modules/contrib');
@@ -159,6 +158,7 @@ drush cset -y system.date country.default $COUNTRY_CODE
 # patching settings.php
 chmod 755 sites/default
 chmod 644 sites/default/settings.php
+chmod 644 sites/default/settings.local.php
 
 
 # configuration
@@ -168,16 +168,19 @@ sed -i "/files\/config_/d" sites/default/settings.php
 cat << EOF >> sites/default/settings.php
 
 /**
- * Config directories
- */
-\$config_directories[CONFIG_SYNC_DIRECTORY] = 'sites/default/sync';
-
-/**
  * Local dev settings.
  */
 if (file_exists(\$app_root . '/' . \$site_path . '/settings.local.php')) {
   include \$app_root . '/' . \$site_path . '/settings.local.php';
 }
+EOF
+
+cat << EOF >> sites/default/settings.local.php
+
+/**
+ * Config directories
+ */
+\$config_directories[CONFIG_SYNC_DIRECTORY] = 'sites/default/sync';
 EOF
 
 
